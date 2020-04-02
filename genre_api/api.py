@@ -16,6 +16,7 @@ def create_routes(api):
     api.add_resource(PlaylistRoute, '/playlists')
     api.add_resource(PlaylistByIDRoute, '/playlists/<playlist_id>')
     api.add_resource(PlaylistAddSongsRoute, '/playlists/<playlist_id>/songs')
+    api.add_resource(PlaylistSingerRoute, '/playlists/<playlist_id>/singers')
 
 
 def create_app():
