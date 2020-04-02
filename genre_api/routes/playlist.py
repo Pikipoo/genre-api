@@ -33,7 +33,7 @@ class PlaylistRoute(Resource):
                 'description': 'The added playlist',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': Playlist.__name__,
+                'dataType': PlaylistSchema.__name__,
                 'paramType': 'body'
             }
         ],
@@ -111,7 +111,7 @@ class PlaylistAddSongsRoute(Resource):
                 'description': 'The added songs',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': AddSongsParam.__name__,
+                'dataType': AddSongsSchema.__name__,
                 'paramType': 'body'
             }
         ],
