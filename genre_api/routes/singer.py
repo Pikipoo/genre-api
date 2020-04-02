@@ -65,7 +65,7 @@ class SingerRoute(Resource):
         singer = Singer.create(name=singer_name, genre_id=genre.id,
                                inferred_genre_id=None)
 
-        return singer.select().dicts().get()
+        return singer.select().where(Singer.id == singer.id).dicts().get()
 
 
 class SingerByIDRoute(Resource):
