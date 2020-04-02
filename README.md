@@ -18,7 +18,7 @@ docker build . -t genre_api:1.0
 docker run --name genre_api -p 5000:5000 genre_api:1.0
 ```
 
-Run the script calculating inferred genres for artits:
+Run the script calculating inferred genres for artists:
 ```bash
 python3 -m genre_api.scripts.calc_inferred_genre
 ```
