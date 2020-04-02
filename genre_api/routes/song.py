@@ -32,7 +32,7 @@ class SongRoute(Resource):
                 'description': 'The added song',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': Song.__name__,
+                'dataType': SongSchema.__name__,
                 'paramType': 'body'
             }
         ],
