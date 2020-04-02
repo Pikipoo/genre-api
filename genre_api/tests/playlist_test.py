@@ -73,6 +73,40 @@ class TestPlaylist(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, response_body)
 
+    def test_put_playlist_by_id_200(self):
+        body = json.dumps({
+            'name': 'Playlist1'
+            })
+        self.client.post(
+            '/playlists',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        body = json.dumps({
+            'name': 'Genre1'
+            })
+        self.client.post(
+            '/genres',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        body = json.dumps({
+            'name': 'Playlist2',
+            'genre_id': 1
+            })
+        response_body = {
+            'id': 1,
+            'name': 'Playlist2',
+            'genre_id': 1
+            }
+        response = self.client.put(
+            '/playlists/1',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, response_body)
+
     def test_post_song_to_playlist_200(self):
         body = json.dumps({
             'name': 'Genre1'
