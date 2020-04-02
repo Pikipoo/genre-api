@@ -23,7 +23,15 @@ class Song(BaseModel):
     genre_id = ForeignKeyField(Genre, backref='songs')
 
 
+@swagger.model
 class SongSchema(Schema):
+    resource_fields = {
+        'title': flask_fields.String(),
+        'singer_id': flask_fields.Integer(),
+        'genre_id': flask_fields.Integer()
+
+    }
+
     title = fields.String(required=True)
     singer_id = fields.Integer(required=True)
     genre_id = fields.Integer(required=True)

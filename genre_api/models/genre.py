@@ -16,5 +16,10 @@ class Genre(BaseModel):
     name = CharField(unique=True, index=True)
 
 
+@swagger.model
 class GenreSchema(Schema):
+    resource_fields = {
+        'name': flask_fields.String()
+    }
+
     name = fields.String(required=True)
