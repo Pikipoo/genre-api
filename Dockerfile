@@ -7,3 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ADD . /api
 WORKDIR /api
 RUN pip install -r requirements.txt
+
+EXPOSE 5000
+ENTRYPOINT ["python3", "app.py"]
