@@ -13,6 +13,11 @@ def create_routes(api):
     api.add_resource(SongRoute, '/songs')
     api.add_resource(SongByIDRoute, '/songs/<song_id>')
 
+    api.add_resource(PlaylistRoute, '/playlists')
+    api.add_resource(PlaylistByIDRoute, '/playlists/<playlist_id>')
+    api.add_resource(PlaylistAddSongsRoute, '/playlists/<playlist_id>/songs')
+    api.add_resource(PlaylistSingerRoute, '/playlists/<playlist_id>/singers')
+
 
 def create_app():
     app = Flask(__name__)
