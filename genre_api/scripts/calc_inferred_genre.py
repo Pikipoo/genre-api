@@ -1,5 +1,8 @@
 import requests
 import json
+import operator
+import logging
+from collections import defaultdict
 from errors import APIError
 
 URL = 'http://localhost:5000'
@@ -15,16 +18,44 @@ def get_playlists_for_singer(singer):
     return rq.status_code, rq.json()
 
 
+def count_playlist_genre(playlists_array):
+    genre_count_dict = defaultdict(int)
+    for playlist in playlists_array:
+        playlist_genre = playlist['genre_id']
+        genre_count_dict[playlist_genre] += 1
+
+    return genre_count_dict
+
+
+def update_singer_genre(singer, inferred_genre_id):
+    singer_update = {
+        'name': singer['name'],
+        'genre_id': singer['genre_id'],
+        'inferred_genre_id': inferred_genre_id
+    }
+    rq = requests.put(f"{URL}/singers/{singer['id']}", json=singer_update)
+    return rq.status_code, rq.json()
+
+
 def calc_inferred_genre():
     rsp_code, singers_array = get_all_singers()
     if rsp_code != 200:
         raise APIError(rsp_code, singers_array)
 
     for singer in singers_array:
-        rsp_code, singer_playlists_array = get_playlists_for_singer(singer)
+        rsp_code, playlists_array = get_playlists_for_singer(singer)
         if rsp_code != 200:
+            logging.warning(f'{rsp_code} - {singers_array}')
             continue
-        print(singer_playlists_array)
+        genre_count_dict = count_playlist_genre(playlists_array)
+        # Get the key with the highest value in genre_count_dict
+        inferred_genre_id = max(genre_count_dict.items(),
+                                key=operator.itemgetter(1))[0]
+
+        rsp_code, singer = update_singer_genre(singer, inferred_genre_id)
+        if rsp_code != 200:
+            logging.warning(f'{rsp_code} - {singers_array}')
+            continue
 
 
 if __name__ == '__main__':
