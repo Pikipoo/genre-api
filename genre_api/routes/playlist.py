@@ -98,6 +98,14 @@ class PlaylistByIDRoute(Resource):
         nickname='put',
         parameters=[
             {
+                'name': 'playlist_id',
+                'description': 'The ID of the retrieved playlist',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            },
+            {
                 'name': 'body',
                 'description': 'The updated playlist values',
                 'required': True,
