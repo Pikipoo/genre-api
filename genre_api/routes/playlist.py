@@ -1,3 +1,4 @@
+import operator
 from flask import request
 from flask_restful import Resource, abort, marshal_with
 from flask_restful_swagger import swagger
@@ -10,6 +11,7 @@ from genre_api.models.song_to_playlist import SongToPlaylist
 from genre_api.models.singer import Singer
 from genre_api.routes.song import SongByIDRoute
 from genre_api.routes.genre import GenreByIDRoute
+from genre_api.scripts.calc_inferred_genre import count_playlist_genre
 
 
 class PlaylistRoute(Resource):
@@ -208,6 +210,8 @@ class PlaylistAddSongsRoute(Resource):
             except DoesNotExist:
                 abort(404, message=f'Playlist with ID {playlist_id} not found')
 
+            self.__update_playlist_id(playlist_id)
+
         return [song for song in songs_array]
 
     def __verify_songs_from_id(self, song_ids_list):
@@ -222,6 +226,21 @@ class PlaylistAddSongsRoute(Resource):
             songs_array.append(song_id)
 
         return songs_array
+
+    def __update_playlist_id(self, playlist_id):
+        """
+        Update playlist's genre using the newly added songs.
+        """
+        songs_in_playlist = self.get(playlist_id)
+
+        genre_count_dict = count_playlist_genre(songs_in_playlist)
+        genre_id = max(genre_count_dict.items(),
+                       key=operator.itemgetter(1))[0]
+
+        playlist = Playlist.get(Playlist.id == playlist_id)
+        playlist.genre_id = genre_id
+        with playlist._meta.database.atomic():
+            playlist.save()
 
     @swagger.operation(
         notes='get songs in a playlist',

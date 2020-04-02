@@ -3,7 +3,7 @@ import json
 import operator
 import logging
 from collections import defaultdict
-from errors import APIError
+from genre_api.scripts.errors import APIError
 
 URL = 'http://localhost:5000'
 
