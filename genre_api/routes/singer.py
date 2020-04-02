@@ -102,7 +102,7 @@ class SingerByIDRoute(Resource):
     @swagger.operation(
         notes='update a singer item by ID',
         responseClass=Singer.__name__,
-        nickname='get',
+        nickname='put',
         parameters=[
             {
                 'name': 'singer_id',
@@ -158,7 +158,7 @@ class SingerByIDRoute(Resource):
         with singer._meta.database.atomic():
             singer.save()
 
-        return singer.select().dicts().get()
+        return singer.select().where(Singer.id == singer_id).dicts().get()
 
 
 class SingerSongsRoute(Resource):
