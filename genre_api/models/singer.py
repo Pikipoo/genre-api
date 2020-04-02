@@ -22,6 +22,25 @@ class Singer(BaseModel):
                                         null=True)
 
 
+@swagger.model
 class SingerSchema(Schema):
+    resource_fields = {
+        'name': flask_fields.String(),
+        'genre_id': flask_fields.Integer(),
+    }
+
     name = fields.String(required=True)
     genre_id = fields.Integer(required=True)
+
+
+@swagger.model
+class SingerPutSchema(Schema):
+    resource_fields = {
+        'name': flask_fields.String(),
+        'genre_id': flask_fields.Integer(),
+        'inferred_genre_id': flask_fields.Integer()
+    }
+
+    name = fields.String(required=True)
+    genre_id = fields.Integer(required=True)
+    inferred_genre_id = fields.Integer(required=True)
