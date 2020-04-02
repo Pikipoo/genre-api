@@ -225,7 +225,8 @@ class SingerPlaylistsRoute(Resource):
                                        .join(songs)\
                                        .where(
                                            SongToPlaylist.song_id == songs.id
-                                           )
+                                           )\
+                                       .where(songs.singer_id == singer_id)
         except DoesNotExist:
             abort(404, message=f'Singer with ID {singer_id} not found')
 
