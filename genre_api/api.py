@@ -8,6 +8,8 @@ def create_routes(api):
     api.add_resource(SingerRoute, '/singers')
     api.add_resource(SingerByIDRoute, '/singers/<singer_id>')
 
+    api.add_resource(GenreRoute, '/genres')
+
 
 def create_app():
     app = Flask(__name__)
