@@ -2,10 +2,11 @@ import requests
 import json
 import operator
 import logging
+from genre_api.config.config import CONFIG
 from collections import defaultdict
 from genre_api.scripts.errors import APIError
 
-URL = 'http://localhost:5000'
+URL = f"http://{CONFIG['flask']['host']}:5000"
 
 
 def get_all_singers():
