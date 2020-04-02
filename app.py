@@ -1,5 +1,6 @@
 from genre_api.models.meta import sqlite_db as database
 from genre_api.api import create_app, create_api, create_routes, create_tables
+from genre_api.config.config import CONFIG
 
 app = create_app()
 api = create_api(app)
@@ -19,4 +20,4 @@ def after_request(response):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0')
+    app.run(debug=False, host=CONFIG['flask']['host'])
