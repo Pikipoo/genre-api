@@ -48,17 +48,12 @@ class TestGenre(unittest.TestCase):
         body = json.dumps({
             'name': 'Genre1'
             })
-
-        self.client.post(
-            '/genres',
-            headers={'Content-Type': 'application/json'},
-            data=body)
         response = self.client.post(
             '/genres',
             headers={'Content-Type': 'application/json'},
             data=body)
 
-        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.status_code, 200)
 
     def test_get_genre(self):
         body = json.dumps({
@@ -76,3 +71,33 @@ class TestGenre(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, response_body)
+
+    def test_get_genre_by_id_200(self):
+        body = json.dumps({
+            'name': 'Genre1'
+            })
+        self.client.post(
+            '/genres',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        response_body = {
+            'id': 1,
+            'name': 'Genre1'}
+        response = self.client.get('/genres/1')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, response_body)
+
+    def test_get_genre_by_id_404(self):
+        body = json.dumps({
+            'name': 'Genre1'
+            })
+        self.client.post(
+            '/genres',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        response = self.client.get('/genres/2')
+
+        self.assertEqual(response.status_code, 404)
