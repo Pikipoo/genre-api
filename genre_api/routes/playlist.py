@@ -9,6 +9,7 @@ from genre_api.models.song import Song
 from genre_api.models.song_to_playlist import SongToPlaylist
 from genre_api.models.singer import Singer
 from genre_api.routes.song import SongByIDRoute
+from genre_api.routes.genre import GenreByIDRoute
 
 
 class PlaylistRoute(Resource):
@@ -90,6 +91,54 @@ class PlaylistByIDRoute(Resource):
             abort(404, message=f'Playlist with ID {playlist_id} not found')
 
         return query
+
+    @swagger.operation(
+        notes='update a playlist item',
+        responseClass=Playlist.__name__,
+        nickname='put',
+        parameters=[
+            {
+                'name': 'body',
+                'description': 'The updated playlist values',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': PlaylistPutSchema.__name__,
+                'paramType': 'body'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 400,
+                'message': 'Invalid JSON schema'
+            }
+        ]
+    )
+    @marshal_with(Playlist.resource_fields)
+    def put(self, playlist_id):
+        json_data = request.get_json()
+        try:
+            PlaylistPutSchema().load(json_data)
+        except ValidationError as error:
+            abort(400, message=error.messages)
+
+        try:
+            playlist = Playlist.get(Playlist.id == playlist_id)
+        except DoesNotExist:
+            abort(404, message=f'Playlist with ID {playlist_id} not found')
+
+        # Verifiying genre exists
+        genre_id = json_data['genre_id']
+        GenreByIDRoute().get(genre_id)
+        playlist.genre_id = genre_id
+
+        playlist_name = json_data['name']
+        playlist.name = playlist_name
+
+        with playlist._meta.database.atomic():
+            playlist.save()
+
+        return playlist.select().where(Playlist.id == playlist.id)\
+            .dicts().get()
 
 
 class PlaylistAddSongsRoute(Resource):
