@@ -98,3 +98,74 @@ class SingerByIDRoute(Resource):
             abort(404, message=f'Singer with ID {singer_id} not found')
 
         return query
+
+
+class SingerSongsRoute(Resource):
+    @swagger.operation(
+        notes='get a singer item by ID',
+        responseClass=Song.__name__,
+        nickname='get',
+        parameters=[
+            {
+                'name': 'singer_id',
+                'description': 'The ID of the retrieved singer',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 404,
+                'message': 'Singer with ID <singer_id> not found'
+            }
+        ]
+    )
+    @marshal_with(Song.resource_fields)
+    def get(self, singer_id):
+        try:
+            singer = Singer.get(Singer.id == singer_id)
+        except DoesNotExist:
+            abort(404, message=f'Singer with ID {singer_id} not found')
+
+        return [song for song in singer.songs.select().dicts()]
+
+
+class SingerPlaylistsRoute(Resource):
+    @swagger.operation(
+        notes='get playlists item by singer ID',
+        responseClass=Song.__name__,
+        nickname='get',
+        parameters=[
+            {
+                'name': 'singer_id',
+                'description': 'The ID of the singer',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 404,
+                'message': 'Singer with ID <singer_id> not found'
+            }
+        ]
+    )
+    @marshal_with(Playlist.resource_fields)
+    def get(self, singer_id):
+        try:
+            songs = Song.get(Song.singer_id == singer_id).alias('songs')
+            singer_playlists = Playlist.select()\
+                                       .distinct()\
+                                       .join(SongToPlaylist)\
+                                       .join(songs)\
+                                       .where(
+                                           SongToPlaylist.song_id == songs.id
+                                           )
+        except DoesNotExist:
+            abort(404, message=f'Singer with ID {singer_id} not found')
+
+        return [playlist for playlist in singer_playlists.select().dicts()]
