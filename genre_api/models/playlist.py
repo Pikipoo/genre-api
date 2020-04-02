@@ -35,3 +35,14 @@ class AddSongsSchema(Schema):
     }
 
     song_ids = fields.List(fields.Integer(), required=True)
+
+
+@swagger.model
+class PlaylistPutSchema(Schema):
+    resource_fields = {
+        'name': flask_fields.String(),
+        'genre_id': flask_fields.Integer(),
+    }
+
+    name = fields.String(required=True)
+    genre_id = fields.Integer(required=True)
