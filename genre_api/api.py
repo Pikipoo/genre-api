@@ -5,7 +5,8 @@ from peewee import *
 
 
 def create_routes(api):
-    pass
+    api.add_resource(SingerRoute, '/singers')
+    api.add_resource(SingerByIDRoute, '/singers/<singer_id>')
 
 
 def create_app():
