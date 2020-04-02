@@ -6,6 +6,8 @@ from marshmallow import ValidationError
 from genre_api.models.song import Song, SongSchema
 from genre_api.models.singer import Singer
 from genre_api.models.genre import Genre
+from genre_api.models.playlist import Playlist
+from genre_api.models.song_to_playlist import SongToPlaylist
 
 
 class SongRoute(Resource):
@@ -106,3 +108,39 @@ class SongByIDRoute(Resource):
             abort(404, message=f'Song with ID {song_id} not found')
 
         return query
+
+
+class SongPlaylistsRoute(Resource):
+    @swagger.operation(
+        notes='get playlist items for a song',
+        responseClass=Playlist.__name__,
+        nickname='get',
+        parameters=[
+            {
+                'name': 'song_id',
+                'description': 'The ID of the song',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 404,
+                'message': 'Song with ID <song_id> not found'
+            }
+        ]
+    )
+    @marshal_with(Playlist.resource_fields)
+    def get(self, song_id):
+        try:
+            playlists_have_song = Playlist.select()\
+                                          .distinct()\
+                                          .join(SongToPlaylist)\
+                                          .join(Song)\
+                                          .where(Song.id == song_id)
+        except DoesNotExist:
+            abort(404, message=f'Song with ID {song_id} not found')
+
+        return [playlist for playlist in playlists_have_song.select().dicts()]
