@@ -1,3 +1,4 @@
+import operator
 from flask import request
 from flask_restful import Resource, abort, marshal_with
 from flask_restful_swagger import swagger
@@ -9,6 +10,8 @@ from genre_api.models.song import Song
 from genre_api.models.song_to_playlist import SongToPlaylist
 from genre_api.models.singer import Singer
 from genre_api.routes.song import SongByIDRoute
+from genre_api.routes.genre import GenreByIDRoute
+from genre_api.scripts.calc_inferred_genre import count_playlist_genre
 
 
 class PlaylistRoute(Resource):
@@ -33,7 +36,7 @@ class PlaylistRoute(Resource):
                 'description': 'The added playlist',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': Playlist.__name__,
+                'dataType': PlaylistSchema.__name__,
                 'paramType': 'body'
             }
         ],
@@ -91,6 +94,62 @@ class PlaylistByIDRoute(Resource):
 
         return query
 
+    @swagger.operation(
+        notes='update a playlist item',
+        responseClass=Playlist.__name__,
+        nickname='put',
+        parameters=[
+            {
+                'name': 'playlist_id',
+                'description': 'The ID of the retrieved playlist',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            },
+            {
+                'name': 'body',
+                'description': 'The updated playlist values',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': PlaylistPutSchema.__name__,
+                'paramType': 'body'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 400,
+                'message': 'Invalid JSON schema'
+            }
+        ]
+    )
+    @marshal_with(Playlist.resource_fields)
+    def put(self, playlist_id):
+        json_data = request.get_json()
+        try:
+            PlaylistPutSchema().load(json_data)
+        except ValidationError as error:
+            abort(400, message=error.messages)
+
+        try:
+            playlist = Playlist.get(Playlist.id == playlist_id)
+        except DoesNotExist:
+            abort(404, message=f'Playlist with ID {playlist_id} not found')
+
+        # Verifiying genre exists
+        genre_id = json_data['genre_id']
+        GenreByIDRoute().get(genre_id)
+        playlist.genre_id = genre_id
+
+        playlist_name = json_data['name']
+        playlist.name = playlist_name
+
+        with playlist._meta.database.atomic():
+            playlist.save()
+
+        return playlist.select().where(Playlist.id == playlist.id)\
+            .dicts().get()
+
 
 class PlaylistAddSongsRoute(Resource):
     @swagger.operation(
@@ -111,7 +170,7 @@ class PlaylistAddSongsRoute(Resource):
                 'description': 'The added songs',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': AddSongsParam.__name__,
+                'dataType': AddSongsSchema.__name__,
                 'paramType': 'body'
             }
         ],
@@ -151,6 +210,8 @@ class PlaylistAddSongsRoute(Resource):
             except DoesNotExist:
                 abort(404, message=f'Playlist with ID {playlist_id} not found')
 
+            self.__update_playlist_id(playlist_id)
+
         return [song for song in songs_array]
 
     def __verify_songs_from_id(self, song_ids_list):
@@ -165,6 +226,21 @@ class PlaylistAddSongsRoute(Resource):
             songs_array.append(song_id)
 
         return songs_array
+
+    def __update_playlist_id(self, playlist_id):
+        """
+        Update playlist's genre using the newly added songs.
+        """
+        songs_in_playlist = self.get(playlist_id)
+
+        genre_count_dict = count_playlist_genre(songs_in_playlist)
+        genre_id = max(genre_count_dict.items(),
+                       key=operator.itemgetter(1))[0]
+
+        playlist = Playlist.get(Playlist.id == playlist_id)
+        playlist.genre_id = genre_id
+        with playlist._meta.database.atomic():
+            playlist.save()
 
     @swagger.operation(
         notes='get songs in a playlist',

@@ -44,6 +44,47 @@ class TestSinger(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_put_singer_by_id_200(self):
+        body = [{
+            'name': 'Genre1'
+            },
+            {
+            'name': 'Genre2'
+            }]
+        for b in body:
+            self.client.post(
+                '/genres',
+                headers={'Content-Type': 'application/json'},
+                data=json.dumps(b))
+
+        body = json.dumps({
+            'name': 'Singer1',
+            'genre_id': 1
+            })
+        self.client.post(
+            '/singers',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        body = json.dumps({
+            'name': 'Singer2',
+            'genre_id': 2,
+            'inferred_genre_id': 1
+            })
+        response_body = {
+            'id': 1,
+            'name': 'Singer2',
+            'genre_id': 2,
+            'inferred_genre_id': 1
+            }
+        response = self.client.put(
+            '/singers/1',
+            headers={'Content-Type': 'application/json'},
+            data=body)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, response_body)
+
     def test_get_singer(self):
         body = json.dumps({
             'name': 'Genre1'

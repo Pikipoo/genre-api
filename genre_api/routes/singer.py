@@ -3,7 +3,7 @@ from flask_restful import Resource, abort, marshal_with
 from flask_restful_swagger import swagger
 from peewee import DoesNotExist
 from marshmallow import ValidationError
-from genre_api.models.singer import Singer, SingerSchema
+from genre_api.models.singer import *
 from genre_api.models.genre import Genre
 from genre_api.models.song import Song
 from genre_api.models.playlist import Playlist
@@ -32,7 +32,7 @@ class SingerRoute(Resource):
                 'description': 'The added singer',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': Singer.__name__,
+                'dataType': SingerSchema.__name__,
                 'paramType': 'body'
             }
         ],
@@ -99,6 +99,67 @@ class SingerByIDRoute(Resource):
 
         return query
 
+    @swagger.operation(
+        notes='update a singer item by ID',
+        responseClass=Singer.__name__,
+        nickname='put',
+        parameters=[
+            {
+                'name': 'singer_id',
+                'description': 'The ID of the updated singer',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': int.__name__,
+                'paramType': 'path'
+            },
+            {
+                'name': 'body',
+                'description': 'The updated singer values',
+                'required': True,
+                'allowMultiple': False,
+                'dataType': SingerPutSchema.__name__,
+                'paramType': 'body'
+            }
+        ],
+        responseMessages=[
+            {
+                'code': 404,
+                'message': 'Singer with ID <singer_id> not found'
+            }
+        ]
+    )
+    @marshal_with(Singer.resource_fields)
+    def put(self, singer_id):
+        json_data = request.get_json()
+        try:
+            SingerPutSchema().load(json_data)
+        except ValidationError as error:
+            abort(400, message=error.messages)
+
+        # Getting singer item
+        try:
+            singer = Singer.get(Singer.id == singer_id)
+        except DoesNotExist:
+            abort(404, message=f'Singer with ID {singer_id} not found')
+
+        # Verifying genre exists
+        genre_id = json_data['genre_id']
+        try:
+            genre = Genre.get(Genre.id == genre_id)
+        except DoesNotExist:
+            abort(404, message=f'Genre with ID {genre_id} not found')
+        singer.genre_id = genre_id
+
+        singer_name = json_data['name']
+        singer.name = singer_name
+        inferred_genre_id = json_data['inferred_genre_id']
+        singer.inferred_genre_id = inferred_genre_id
+
+        with singer._meta.database.atomic():
+            singer.save()
+
+        return singer.select().where(Singer.id == singer_id).dicts().get()
+
 
 class SingerSongsRoute(Resource):
     @swagger.operation(
@@ -135,7 +196,7 @@ class SingerSongsRoute(Resource):
 class SingerPlaylistsRoute(Resource):
     @swagger.operation(
         notes='get playlists item by singer ID',
-        responseClass=Song.__name__,
+        responseClass=Playlist.__name__,
         nickname='get',
         parameters=[
             {
@@ -164,7 +225,8 @@ class SingerPlaylistsRoute(Resource):
                                        .join(songs)\
                                        .where(
                                            SongToPlaylist.song_id == songs.id
-                                           )
+                                           )\
+                                       .where(songs.singer_id == singer_id)
         except DoesNotExist:
             abort(404, message=f'Singer with ID {singer_id} not found')
 

@@ -19,16 +19,30 @@ class Playlist(BaseModel):
     genre_id = ForeignKeyField(Genre, backref='playlists', null=True)
 
 
+@swagger.model
 class PlaylistSchema(Schema):
+    resource_fields = {
+        'name': flask_fields.String(),
+    }
+
     name = fields.String(required=True)
 
 
+@swagger.model
 class AddSongsSchema(Schema):
+    resource_fields = {
+        'song_ids': flask_fields.List(flask_fields.Integer())
+    }
+
     song_ids = fields.List(fields.Integer(), required=True)
 
 
 @swagger.model
-class AddSongsParam():
+class PlaylistPutSchema(Schema):
     resource_fields = {
-        'song_ids': flask_fields.List(flask_fields.Integer())
+        'name': flask_fields.String(),
+        'genre_id': flask_fields.Integer(),
     }
+
+    name = fields.String(required=True)
+    genre_id = fields.Integer(required=True)
