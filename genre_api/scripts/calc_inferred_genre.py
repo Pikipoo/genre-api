@@ -10,16 +10,26 @@ URL = f"http://{CONFIG['flask']['host']}:5000"
 
 
 def get_all_singers():
+    """
+    Retrieve all singers from API.
+    """
     rq = requests.get(f'{URL}/singers')
     return rq.status_code, rq.json()
 
 
 def get_playlists_for_singer(singer):
+    """
+    Retrieve all playlist a singer is in from API.
+    """
     rq = requests.get(f"{URL}/singers/{singer['id']}/playlists")
     return rq.status_code, rq.json()
 
 
 def count_playlist_genre(playlists_array):
+    """
+    Creates a directory referencing every music genre by id and counting their
+    occurrences in playlists_array.
+    """
     genre_count_dict = defaultdict(int)
     for playlist in playlists_array:
         playlist_genre = playlist['genre_id']
@@ -29,6 +39,10 @@ def count_playlist_genre(playlists_array):
 
 
 def update_singer_genre(singer, inferred_genre_id):
+    """
+    Use the API to update a singer's inferred_genre using calc_inferred_genre
+    calculations.
+    """
     singer_update = {
         'name': singer['name'],
         'genre_id': singer['genre_id'],
@@ -39,6 +53,10 @@ def update_singer_genre(singer, inferred_genre_id):
 
 
 def calc_inferred_genre():
+    """
+    Retrieve playlists for every singers and update singers' inferred_genre
+    based on the playlists' genre they appear most in.
+    """
     rsp_code, singers_array = get_all_singers()
     if rsp_code != 200:
         raise APIError(rsp_code, singers_array)
