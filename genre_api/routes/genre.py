@@ -3,7 +3,7 @@ from flask_restful import Resource, abort, marshal_with
 from flask_restful_swagger import swagger
 from peewee import IntegrityError
 from marshmallow import ValidationError
-from genre_api.models.genre import Genre, GenreSchema
+from genre_api.models.genre import *
 
 
 class GenreRoute(Resource):
@@ -28,7 +28,7 @@ class GenreRoute(Resource):
                 'description': 'The added genre',
                 'required': True,
                 'allowMultiple': False,
-                'dataType': Genre.__name__,
+                'dataType': GenreSchema.__name__,
                 'paramType': 'body'
             }
         ],
